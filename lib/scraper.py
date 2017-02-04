@@ -48,14 +48,10 @@ class Scraper():
             result = self.find_album(artist, album)
             if result:
                 self.return_search(result)
-            else:
-                self.not_found()
         elif action == 'getdetails':
             result = self.get_details(url)
             if result:
                 self.return_details(result)
-            else:
-                self.not_found()
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
     def find_album(self, artist, album):
@@ -103,10 +99,6 @@ class Scraper():
             listitem.setProperty('album.year', item['year'])
             listitem.setProperty('relevance', item['relevance'])
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['url'], listitem=listitem, isFolder=True)
-
-    def not_found(self):
-        listitem = xbmcgui.ListItem(offscreen=True)
-        xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=True, listitem=listitem)
 
     def return_details(self, item):
         listitem = xbmcgui.ListItem(item['album'], offscreen=True)
