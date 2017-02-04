@@ -42,13 +42,20 @@ def get_data(url):
         response = ''
     return response
 
-
 class Scraper():
     def __init__(self, action, artist, album, url):
         if action == 'find':
-            self.find_album(artist, album)
+            result = self.find_album(artist, album)
+            if result:
+                self.return_search(result)
+            else:
+                self.not_found()
         elif action == 'getdetails':
-            self.get_details(url)
+            result = self.get_details(url)
+            if result:
+                self.return_details(result)
+            else:
+                self.not_found()
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
     def find_album(self, artist, album):
@@ -56,42 +63,50 @@ class Scraper():
         query = 'searchalbum.php?s=%s&a=%s' % (urllib.quote_plus(artist), urllib.quote_plus(album))
         url = AUDIODBURL % (AUDIODBKEY, query)
         result = get_data(url)
-        if result:
-            data = json.loads(result)
-            if data:
-                albumresults = theaudiodb_albumfind(data)
-                if albumresults:
-                    self.return_search(albumresults)
+        if not result:
+            return
+        data = json.loads(result)
+        if not data:
+            return
+        albumresults = theaudiodb_albumfind(data)
+        return albumresults
 
     def get_details(self, url):
         # theaudiodb
         result = get_data(url)
-        if result:
-            data = json.loads(result)
-            if data:
-                albumresults = theaudiodb_albumdetails(data)
-                if albumresults:
-                    # fanarttv
-                    if albumresults['mbalbumid']:
-                        url = FANARTVURL % (albumresults['mbalbumid'], FANARTVKEY)
-                        result = get_data(url)
-                        if result:
-                            data = json.loads(result)
-                            if data:
-                                artresults = fanarttv_albumart(data)
-                                if artresults:
-                                    albumresults['thumb'] = albumresults['thumb'] + artresults['thumb']
-                                    if not albumresults['cdart']:
-                                        albumresults['cdart'] = artresults['cdart']
-                    self.return_details(albumresults)
+        if not result:
+            return
+        data = json.loads(result)
+        if not data:
+            return
+        albumresults = theaudiodb_albumdetails(data)
+        if not albumresults:
+            return
+        # fanarttv
+        if albumresults['mbalbumid']:
+            url = FANARTVURL % (albumresults['mbalbumid'], FANARTVKEY)
+            result = get_data(url)
+            if result:
+                data = json.loads(result)
+                if data:
+                    artresults = fanarttv_albumart(data)
+                    if artresults:
+                        albumresults['thumb'] = albumresults['thumb'] + artresults['thumb']
+                        if not albumresults['cdart']:
+                            albumresults['cdart'] = artresults['cdart']
+        return albumresults
 
     def return_search(self, data):
         for count, item in enumerate(data):
             listitem = xbmcgui.ListItem(item['album'], thumbnailImage=item['thumb'], offscreen=True)
-            listitem.setProperty('relevance', str(1.0 / (count + 1)))
             listitem.setProperty('album.artist', item['artist'])
             listitem.setProperty('album.year', item['year'])
+            listitem.setProperty('relevance', item['relevance'])
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['url'], listitem=listitem, isFolder=True)
+
+    def not_found(self):
+        listitem = xbmcgui.ListItem(offscreen=True)
+        xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=True, listitem=listitem)
 
     def return_details(self, item):
         listitem = xbmcgui.ListItem(item['album'], offscreen=True)

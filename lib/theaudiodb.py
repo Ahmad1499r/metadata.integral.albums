@@ -11,6 +11,7 @@ def theaudiodb_albumfind(data):
             albumdata['year'] = item.get('intYearReleased', '')
             albumdata['thumb'] = item.get('strAlbumThumb', '')
             albumdata['url'] = 'http://www.theaudiodb.com/api/v1/json/1/album-mb.php?i=%s' % item['strMusicBrainzID']
+            albumdata['relevance'] = '1'
             albums.append(albumdata)
         return albums
 
