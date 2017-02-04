@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="metadata.integral.albums" name="Integral albums scraper" version="0.0.1" provider-name="Team-Kodi">
+	<requires>
+		<import addon="xbmc.metadata" version="2.1.0"/>
+	</requires>
+	<extension point="xbmc.metadata.scraper.albums" library="default.py"/>
+	<extension point="xbmc.addon.metadata">
+		<summary lang="en_GB">Integral music scraper for albums</summary>
+		<description lang="en_GB">Searches for album information and artwork across multiple websites.</description>
+		<platform>all</platform>
+		<license>GPL v2.0</license>
+		<forum>http://forum.kodi.tv/</forum>
+		<source>https://github.com/ronie/metadata.integral.albums/</source>
+		<assets>
+			<icon>icon.png</icon>
+		<assets>
+	</extension>
+</addon>
+
