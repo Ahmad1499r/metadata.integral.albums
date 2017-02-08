@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+from utils import *
 
 def theaudiodb_albumfind(data):
     if data['album']:
@@ -10,7 +10,7 @@ def theaudiodb_albumfind(data):
             albumdata['album'] = item['strAlbum']
             albumdata['year'] = item.get('intYearReleased', '')
             albumdata['thumb'] = item.get('strAlbumThumb', '')
-            albumdata['url'] = 'http://www.theaudiodb.com/api/v1/json/1/album-mb.php?i=%s' % item['strMusicBrainzID']
+            albumdata['url'] = AUDIODBURL % (AUDIODBKEY, AUDIODBDETAILS % item['strMusicBrainzID'])
             albumdata['relevance'] = '1'
             albums.append(albumdata)
         return albums
@@ -38,9 +38,9 @@ def theaudiodb_albumdetails(data):
         else:
             missing.append('label')
         if item['strReleaseFormat']:
-            albumdata['releasetype'] = item['strReleaseFormat']
+            albumdata['type'] = item['strReleaseFormat']
         else:
-            missing.append('releasetype')
+            missing.append('type')
         if item['strAlbumThumbBack']:
             albumdata['back'] = item['strAlbumThumbBack']
         else:
@@ -81,7 +81,7 @@ def theaudiodb_albumdetails(data):
         else:
             missing.append('description')
         if item['strArtist']:
-            artist = []
+            artists = []
             artistdata = {}
             artistdata['artist'] = item['strArtist']
             if item['strMusicBrainzArtistID']:
@@ -89,8 +89,8 @@ def theaudiodb_albumdetails(data):
             else:
                 artistdata['mbartistid'] = ''
                 missing.append('mbartistid')
-            artist.append(artistdata)
-            albumdata['artist'] = artist
+            artists.append(artistdata)
+            albumdata['artist'] = artists
         else:
             missing.append('artist')
         if item['strAlbumThumb']:
@@ -102,7 +102,7 @@ def theaudiodb_albumdetails(data):
             albumdata['thumb'] = thumb
         else:
             missing.append('thumb')
-        missing.append('type')
+        albumdata['releasetype'] = 'album'
         missing.append('compilation')
         missing.append('artist_description')
         for cat in missing:

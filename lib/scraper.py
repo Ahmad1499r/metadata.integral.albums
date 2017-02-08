@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
 # INFO
@@ -17,38 +16,38 @@ import xbmcgui
 import xbmcplugin
 from theaudiodb import theaudiodb_albumfind
 from theaudiodb import theaudiodb_albumdetails
+from musicbrainz import musicbrainz_albumfind
+from musicbrainz import musicbrainz_albumdetails
 from fanarttv import fanarttv_albumart
-
-ADDONID = sys.modules[ "__main__" ].ADDONID
-
-AUDIODBKEY = '58424d43204d6564696120'
-AUDIODBURL = 'http://www.theaudiodb.com/api/v1/json/%s/%s'
-
-FANARTVKEY = 'ed4b784f97227358b31ca4dd966a04f1'
-FANARTVURL = 'http://webservice.fanart.tv/v3/music/albums/%s?api_key=%s'
-
-def log(txt):
-    if isinstance (txt,str):
-        txt = txt.decode('utf-8')
-    message = u'%s: %s' % (ADDONID, txt)
-    xbmc.log(msg=message.encode('utf-8'), level=xbmc.LOGDEBUG)
+from utils import *
 
 def get_data(url):
     try:
+        print '======= ALBUM URL ======='
+        print url
         req = urllib2.urlopen(url)
         response = req.read()
+        print '======= ALBUM RESPONSE ======='
+        print response
+        print '=========================='
         req.close()
     except:
+        print '======= ALBUM RESPONSE ======='
+        print '>>> FAILED! <<<'
+        print '=========================='
         response = ''
     return response
+
 
 class Scraper():
     def __init__(self, action, artist, album, url):
         if action == 'find':
+            print '======= ALBUM FIND ======='
             result = self.find_album(artist, album)
             if result:
                 self.return_search(result)
         elif action == 'getdetails':
+            print '======= ALBUM DETAILS ======='
             result = self.get_details(url)
             if result:
                 self.return_details(result)
@@ -56,40 +55,62 @@ class Scraper():
 
     def find_album(self, artist, album):
         # theaudiodb
-        query = 'searchalbum.php?s=%s&a=%s' % (urllib.quote_plus(artist), urllib.quote_plus(album))
-        url = AUDIODBURL % (AUDIODBKEY, query)
+#        query = AUDIODBSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album))
+#        url = AUDIODBURL % (AUDIODBKEY, query)
+#        result = get_data(url)
+#        if not result:
+#            return
+#        data = json.loads(result)
+#        if not data:
+#            return
+#        albumresults = theaudiodb_albumfind(data)
+        # musicbrainz
+        query = MUSICBRAINZSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album))
+        url = MUSICBRAINZURL % query
+        xbmc.sleep(1000) # musicbrainz limit
         result = get_data(url)
         if not result:
             return
         data = json.loads(result)
         if not data:
             return
-        albumresults = theaudiodb_albumfind(data)
+        albumresults = musicbrainz_albumfind(data)
         return albumresults
 
     def get_details(self, url):
         # theaudiodb
+#        result = get_data(url)
+#        if not result:
+#            return
+#        data = json.loads(result)
+#        if not data:
+#            return
+#        albumresults = theaudiodb_albumdetails(data)
+#        if not albumresults:
+#            return
+        # musicbrainz
+        xbmc.sleep(1000) # musicbrainz limit
         result = get_data(url)
         if not result:
             return
         data = json.loads(result)
         if not data:
             return
-        albumresults = theaudiodb_albumdetails(data)
+        albumresults = musicbrainz_albumdetails(data)
         if not albumresults:
             return
         # fanarttv
-        if albumresults['mbalbumid']:
-            url = FANARTVURL % (albumresults['mbalbumid'], FANARTVKEY)
-            result = get_data(url)
-            if result:
-                data = json.loads(result)
-                if data:
-                    artresults = fanarttv_albumart(data)
-                    if artresults:
-                        albumresults['thumb'] = albumresults['thumb'] + artresults['thumb']
-                        if not albumresults['cdart']:
-                            albumresults['cdart'] = artresults['cdart']
+#        if albumresults['mbalbumid']:
+#            url = FANARTVURL % (albumresults['mbalbumid'], FANARTVKEY)
+#            result = get_data(url)
+#            if result:
+#                data = json.loads(result)
+#                if data:
+#                    artresults = fanarttv_albumart(data)
+#                    if artresults:
+#                        albumresults['thumb'] = albumresults['thumb'] + artresults['thumb']
+#                        if not albumresults['cdart']:
+#                            albumresults['cdart'] = artresults['cdart']
         return albumresults
 
     def return_search(self, data):
