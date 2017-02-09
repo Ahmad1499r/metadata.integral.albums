@@ -18,6 +18,8 @@ from theaudiodb import theaudiodb_albumfind
 from theaudiodb import theaudiodb_albumdetails
 from musicbrainz import musicbrainz_albumfind
 from musicbrainz import musicbrainz_albumdetails
+from allmusic import allmusic_albumfind
+from allmusic import allmusic_albumdetails
 from fanarttv import fanarttv_albumart
 from utils import *
 
@@ -25,12 +27,13 @@ def get_data(url):
     try:
         print '======= ALBUM URL ======='
         print url
-        req = urllib2.urlopen(url)
-        response = req.read()
+        req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        request = urllib2.urlopen(req)
+        response = request.read()
         print '======= ALBUM RESPONSE ======='
-        print response
+        print 'response'
         print '=========================='
-        req.close()
+        request.close()
     except:
         print '======= ALBUM RESPONSE ======='
         print '>>> FAILED! <<<'
@@ -65,16 +68,23 @@ class Scraper():
 #            return
 #        albumresults = theaudiodb_albumfind(data)
         # musicbrainz
-        query = MUSICBRAINZSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album))
-        url = MUSICBRAINZURL % query
-        xbmc.sleep(1000) # musicbrainz limit
+#        query = MUSICBRAINZSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album))
+#        url = MUSICBRAINZURL % query
+#        xbmc.sleep(1000) # musicbrainz limit
+#        result = get_data(url)
+#        if not result:
+#            return
+#        data = json.loads(result)
+#        if not data:
+#            return
+#        albumresults = musicbrainz_albumfind(data)
+        # allmusic
+        query = ALLMUSICSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album))
+        url = ALLMUSICURL % query
         result = get_data(url)
         if not result:
             return
-        data = json.loads(result)
-        if not data:
-            return
-        albumresults = musicbrainz_albumfind(data)
+        albumresults = allmusic_albumfind(result)
         return albumresults
 
     def get_details(self, url):
@@ -89,14 +99,21 @@ class Scraper():
 #        if not albumresults:
 #            return
         # musicbrainz
-        xbmc.sleep(1000) # musicbrainz limit
+#        xbmc.sleep(1000) # musicbrainz limit
+#        result = get_data(url)
+#        if not result:
+#            return
+#        data = json.loads(result)
+#        if not data:
+#            return
+#        albumresults = musicbrainz_albumdetails(data)
+#        if not albumresults:
+#            return
+        # allmusic
         result = get_data(url)
         if not result:
             return
-        data = json.loads(result)
-        if not data:
-            return
-        albumresults = musicbrainz_albumdetails(data)
+        albumresults = allmusic_albumdetails(result)
         if not albumresults:
             return
         # fanarttv
