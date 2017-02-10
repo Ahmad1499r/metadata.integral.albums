@@ -1,12 +1,5 @@
 # -*- coding: UTF-8 -*-
 
-# INFO
-# allmusic (no album review allowed)
-# musicbrainz
-
-# ARTWORK
-# allmusic
-
 import sys
 import urllib
 import urllib2
@@ -139,6 +132,7 @@ class Scraper():
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['url'], listitem=listitem, isFolder=True)
 
     def return_details(self, item):
+        #TODO only return data we have, no empty strings
         listitem = xbmcgui.ListItem(item['album'], offscreen=True)
         listitem.setProperty('album.musicbrainzid', item['mbalbumid'])
         listitem.setProperty('album.artists', str(len(item['artist'])))

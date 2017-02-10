@@ -21,7 +21,7 @@ def musicbrainz_albumdetails(data):
     albumdata['album'] = data['title']
     albumdata['mbalbumid'] = data['id']
     if data['first-release-date']:
-        albumdata['year'] = data['first-release-date']
+        albumdata['year'] = data['first-release-date'][:4]
     else:
         missing.append('year')
     if data['rating'] and data['rating']['value']:
