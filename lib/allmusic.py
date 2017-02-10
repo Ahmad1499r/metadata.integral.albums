@@ -17,6 +17,8 @@ def allmusic_albumfind(data):
         albumname = albumdata.find('a').get_text().strip()
         albumurl = ALLMUSICDETAILS % albumdata.find('a').get('href')
         artistdata = releasedata.find('div', {'class':'artist'})
+        if not artistdata: # classical album
+            continue
         artistname = artistdata.get_text().strip()
         yeardata = releasedata.find('div', {'class':'year'})
         if yeardata:
@@ -97,8 +99,16 @@ def allmusic_albumdetails(data):
         thumbinfo['thumbaspect'] = ''
         thumb.append(thumbinfo)
     albumdata['thumb'] = thumb
-    albumdata['year'] = soup.find('td', {'class':'year'}).get_text().strip()
-    albumdata['label'] = soup.find('td', {'class':'label-catalog'}).contents[0].strip()
+    yeardata = soup.find('td', {'class':'year'})
+    if yeardata:
+        albumdata['year'] = yeardata.get_text().strip()
+    else:
+        missing.append('year')
+    labeldata = soup.find('td', {'class':'label-catalog'})
+    if labeldata:
+        albumdata['label'] = labeldata.contents[0].strip()
+    else:
+        missing.append('label')
     albumdata['releasetype'] = 'album'
     missing.append('back')
     missing.append('spine')

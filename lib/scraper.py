@@ -18,19 +18,11 @@ from utils import *
 
 def get_data(url):
     try:
-        print '======= ALBUM URL ======='
-        print url
         req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         request = urllib2.urlopen(req)
         response = request.read()
-        print '======= ALBUM RESPONSE ======='
-        print 'response'
-        print '=========================='
         request.close()
     except:
-        print '======= ALBUM RESPONSE ======='
-        print '>>> FAILED! <<<'
-        print '=========================='
         response = ''
     return response
 
@@ -38,12 +30,10 @@ def get_data(url):
 class Scraper():
     def __init__(self, action, artist, album, url):
         if action == 'find':
-            print '======= ALBUM FIND ======='
             result = self.find_album(artist, album)
             if result:
                 self.return_search(result)
         elif action == 'getdetails':
-            print '======= ALBUM DETAILS ======='
             result = self.get_details(url)
             if result:
                 self.return_details(result)
