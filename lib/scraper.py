@@ -41,8 +41,8 @@ class Scraper():
                 self.return_search(result)
         elif action == 'getdetails':
             url = json.loads(url)
-            artist = url['artist']
-            album = url['album']
+            artist = url['artist'].encode('utf-8')
+            album = url['album'].encode('utf-8')
             mbid = url['mbid']
             details = {}
             mbresult = Thread(target = self.get_details, args = (mbid, 'musicbrainz', details))
