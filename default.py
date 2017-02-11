@@ -1,15 +1,8 @@
 # -*- coding: UTF-8 -*-
 
-import os
 import sys
 import urllib
 import urlparse
-import xbmcplugin
-import xbmcaddon
-
-ADDON = xbmcaddon.Addon()
-ADDONID = ADDON.getAddonInfo('id')
-VERSION = ADDON.getAddonInfo('version')
 
 from lib.scraper import Scraper
 

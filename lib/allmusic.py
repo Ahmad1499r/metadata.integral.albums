@@ -38,7 +38,9 @@ def allmusic_albumfind(data):
 def allmusic_albumdetails(data):
     soup = BeautifulSoup(data, 'html.parser')
     albumdata = {}
-    missing = []
+    releasedata = soup.find("div", {"class":"release-date"})
+    if releasedata:
+        albumdata['releasedate'] = releasedata.find('span').get_text()
     genredata = soup.find("div", {"class":"genre"})
     if genredata:
         genrelist = genredata.find_all('a')
@@ -46,8 +48,6 @@ def allmusic_albumdetails(data):
         for genre in genrelist:
             genres.append(genre.get_text())        
         albumdata['genre'] = ', '.join(genres)
-    else:
-        missing.append('genre')
     styledata = soup.find("div", {"class":"styles"})
     if styledata:
         stylelist = styledata.find_all('a')
@@ -55,8 +55,6 @@ def allmusic_albumdetails(data):
         for style in stylelist:
             styles.append(style.get_text())        
         albumdata['styles'] = ', '.join(styles)
-    else:
-        missing.append('styles')
     mooddata =  soup.find('section', {'class':'moods'})
     if mooddata:
         moodlist = mooddata.find_all('a')
@@ -65,8 +63,6 @@ def allmusic_albumdetails(data):
             moods.append(mood.get_text())  
 
         albumdata['moods'] = ', '.join(moods)
-    else:
-        missing.append('moods')
     themedata = soup.find('section', {'class':'themes'})
     if themedata:
         themelist = themedata.find_all('a')
@@ -74,8 +70,6 @@ def allmusic_albumdetails(data):
         for theme in themelist:
             themes.append(theme.get_text())        
         albumdata['themes'] = ', '.join(themes)
-    else:
-        missing.append('themes')
     albumdata['rating'] = soup.find('div', {'itemprop':'ratingValue'}).get_text().strip()
     albumdata['album'] = soup.find('h1', {'class':'album-title'}).get_text().strip()
     artistdata = soup.find('h2', {'class':'album-artist'})
@@ -102,30 +96,8 @@ def allmusic_albumdetails(data):
     yeardata = soup.find('td', {'class':'year'})
     if yeardata:
         albumdata['year'] = yeardata.get_text().strip()
-    else:
-        missing.append('year')
     labeldata = soup.find('td', {'class':'label-catalog'})
     if labeldata:
         albumdata['label'] = labeldata.contents[0].strip()
-    else:
-        missing.append('label')
     albumdata['releasetype'] = 'album'
-    missing.append('back')
-    missing.append('spine')
-    missing.append('cdart')
-    missing.append('mbalbumid')
-    missing.append('description')
-    missing.append('type')
-    missing.append('back')
-    missing.append('spine')
-    missing.append('cdart')
-    missing.append('votes')
-    missing.append('compilation')
-    missing.append('artist_description')
-    for cat in missing:
-        if cat in ('thumb', 'artist'):
-            albumdata[cat] = []
-        else:
-            albumdata[cat] = ''
-    albumdata['missing'] = missing
     return albumdata
