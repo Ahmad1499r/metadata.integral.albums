@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-
 import sys
 import time
 import urllib
@@ -25,11 +24,7 @@ def get_data(url):
         request = urllib2.urlopen(req)
         response = request.read()
         request.close()
-    except urllib2.HTTPError, error:
-        print '============================================='
-        print str(error.code)
-        print str(error.reason)
-        print '-------------------------------------------'
+    except:
         response = ''
     return response
 
@@ -37,135 +32,102 @@ def get_data(url):
 class Scraper():
     def __init__(self, action, artist, album, url):
         self.start = 0
-        if action == 'find':
+        if action == 'find': # only useful for manual search, search both/all providers?
             result = self.find_album(artist, album, 'theaudiodb')
             if not result:
                 result = self.find_album(artist, album, 'musicbrainz')
-            #TODO search allmusic?
+            #TODO search allmusic.. is it likely an album does not exist on musicbrainz, but does on allmusic?
             if result:
-                self.start = time.time()
                 self.return_search(result)
         elif action == 'getdetails':
+            url = json.loads(url)
+            artist = url['artist']
+            album = url['album']
+            mbid = url['mbid']
             details = {}
-            mbresult = Thread(target = self.get_details, args = (url, 'musicbrainz', details))
-            adresult = Thread(target = self.get_details, args = (url, 'theaudiodb', details))
-            ftresult = Thread(target = self.get_details, args = (url, 'fanarttv', details))
+            mbresult = Thread(target = self.get_details, args = (mbid, 'musicbrainz', details))
+            adresult = Thread(target = self.get_details, args = (mbid, 'theaudiodb', details))
+            ftresult = Thread(target = self.get_details, args = (mbid, 'fanarttv', details))
+            amresult = Thread(target = self.get_details, args = ([artist, album], 'allmusic', details))
             mbresult.start()
             adresult.start()
             ftresult.start()
+            amresult.start()
             mbresult.join()
-            if details['musicbrainz'] and ('amlink' in details['musicbrainz']):
-                amsearch = True
-                amresult = Thread(target = self.get_details, args = (details['musicbrainz']['amlink'], 'allmusic', details))
-                amresult.start()
-            else:
-                #TODO search allmusic?
-                amsearch = False
             adresult.join()
             ftresult.join()
-            if amsearch:
-                amresult.join()
+            amresult.join()
             result = self.compile_results(details)
             if result:
                 self.return_details(result)
         if self.start: # musicbrainz ratelimit
             self.end = time.time()
             if self.end - self.start < 1:
-                diff = int((1 - (self.end - self.start)) * 1000) + 1
+                diff = int((1 - (self.end - self.start)) * 1000) + 100 # wait max 1.1 sec.
                 xbmc.sleep(diff)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-    def find_album(self, artist, album, scraper):
+    def find_album(self, artist, album, site):
         # theaudiodb
-        if scraper == 'theaudiodb':
-            query = AUDIODBSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album))
-            url = AUDIODBURL % (AUDIODBKEY, query)
-            result = get_data(url)
-            if not result:
-                return
-            data = json.loads(result)
-            if not data:
-                return
-            albumresults = theaudiodb_albumfind(data)
-            return albumresults
+        if site == 'theaudiodb':
+            url = AUDIODBURL % (AUDIODBKEY, AUDIODBSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album)))
+            scraper = theaudiodb_albumfind
         # musicbrainz
-        elif scraper == 'musicbrainz':
-            query = MUSICBRAINZSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album))
-            url = MUSICBRAINZURL % query
-            result = get_data(url)
-            if not result:
-                return
-            data = json.loads(result)
-            if not data:
-                return
-            albumresults = musicbrainz_albumfind(data)
-            return albumresults
+        elif site == 'musicbrainz':
+            url = MUSICBRAINZURL % (MUSICBRAINZSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album)))
+            scraper = musicbrainz_albumfind
         # allmusic
-        elif scraper == 'allmusic':
-            query = ALLMUSICSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album))
-            url = ALLMUSICURL % query
-            result = get_data(url)
-            if not result:
-                return
-            albumresults = allmusic_albumfind(result)
-            return albumresults
-
-    def get_details(self, mbid, scraper, details):
-        # theaudiodb
-        if scraper == 'theaudiodb':
-            url = AUDIODBURL % (AUDIODBKEY, AUDIODBDETAILS % mbid)
-            result = get_data(url)
-            if not result:
-                return
-            data = json.loads(result)
-            if not data:
-                return
-            albumresults = theaudiodb_albumdetails(data)
-            if not albumresults:
-                return
-            details[scraper] = albumresults
-        # musicbrainz
-        elif scraper == 'musicbrainz':
-            url = MUSICBRAINZURL % (MUSICBRAINZDETAILS % mbid)
+        elif site == 'allmusic':
+            url = ALLMUSICURL % (ALLMUSICSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album)))
+            scraper = allmusic_albumfind
+        result = get_data(url)
+        if site == 'musicbrainz':
             self.start = time.time()
-            result = get_data(url)
-            if not result:
-                return
-            data = json.loads(result)
-            if not data:
-                return
-            albumresults = musicbrainz_albumdetails(data)
-            if not albumresults:
-                return
-            details[scraper] = albumresults
-        # allmusic
-        elif scraper == 'allmusic':
-            url = ALLMUSICDETAILS % mbid # = url
-            result = get_data(url)
-            if not result:
-                return
-            albumresults = allmusic_albumdetails(result)
-            if not albumresults:
-                return
-            details[scraper] = albumresults
+        if not result:
+            return
+        if not site == 'allmusic':
+            result = json.loads(result)
+        albumresults = scraper(result)
+        return albumresults
+
+    def get_details(self, mbid, site, details):
+        # theaudiodb
+        if site == 'theaudiodb':
+            url = AUDIODBURL % (AUDIODBKEY, AUDIODBDETAILS % mbid)
+            albumscraper = theaudiodb_albumdetails
+        # musicbrainz
+        elif site == 'musicbrainz':
+            url = MUSICBRAINZURL % (MUSICBRAINZDETAILS % mbid)
+            albumscraper = musicbrainz_albumdetails
         # fanarttv
-        elif scraper == 'fanarttv':
+        elif site == 'fanarttv':
             url = FANARTVURL % (mbid, FANARTVKEY)
-            result = get_data(url)
-            if not result:
+            albumscraper = fanarttv_albumart
+        # allmusic
+        elif site == 'allmusic':
+            found = self.find_album(mbid[0], mbid[1], 'allmusic')
+            if found:
+                url = ALLMUSICDETAILS % found[0]['mbid'] # = url
+                albumscraper = allmusic_albumdetails
+            else:
                 return
-            data = json.loads(result)
-            if not data:
-                return
-            albumresults = fanarttv_albumart(data)
-            if not albumresults:
-                return
-            details[scraper] = albumresults
+        result = get_data(url)
+        if site == 'musicbrainz':
+            self.start = time.time()
+        if not result:
+            return
+        if not site == 'allmusic':
+            result = json.loads(result)
+        albumresults = albumscraper(result)
+        if not albumresults:
+            return
+        details[site] = albumresults
 
     def compile_results(self, details):
+        #TODO implement user preferences
         result = {}
         thumbs = []
-        # merge results (and thumbs separately)
+        # merge results
         if 'musicbrainz' in details:
             for k, v in details['musicbrainz'].items():
                 result[k] = v
@@ -184,7 +146,7 @@ class Scraper():
                 result[k] = v
                 if k == 'thumb':
                     thumbs += v
-        if result:
+        if result: # provide artwork from all scrapers
             result['thumb'] = thumbs
         return result
 
@@ -194,7 +156,8 @@ class Scraper():
             listitem.setProperty('album.artist', item['artist'])
             listitem.setProperty('album.year', item['year'])
             listitem.setProperty('relevance', item['relevance'])
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['url'], listitem=listitem, isFolder=True)
+            url = {'artist':item['artist'], 'album':item['album'], 'mbid':item['mbid']}
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=json.dumps(url), listitem=listitem, isFolder=True)
 
     def return_details(self, item):
         listitem = xbmcgui.ListItem(item['album'], offscreen=True)
@@ -213,7 +176,7 @@ class Scraper():
             listitem.setProperty('album.moods', item['moods'])
         if 'themes' in item:
             listitem.setProperty('album.themes', item['themes'])
-        if 'compilation' in item: # do we need to set this? if so is this a 'various artist album' or a 'greatest hits album by a single artist' ?
+        if 'compilation' in item: # do we need to set this? if so, is this a 'various artist album' or a 'greatest hits album by a single artist' ?
             listitem.setProperty('album.compilation', item['compilation'])
         if 'description' in item:
             listitem.setProperty('album.review', item['description'])
@@ -229,10 +192,8 @@ class Scraper():
             listitem.setProperty('album.release_type', item['releasetype'])
         if 'year' in item:
             listitem.setProperty('album.year', item['year'])
-        if 'rating' in item:
+        if 'rating' in item: # check what format it needs to be
             listitem.setProperty('album.rating', item['rating'])
-        if 'userrating' in item: # don't think we need to set this ?
-            listitem.setProperty('album.userrating', '')
         if 'votes' in item:
             listitem.setProperty('album.votes', item['votes'])
         if 'cdart' in item:

@@ -10,7 +10,7 @@ def theaudiodb_albumfind(data):
             albumdata['album'] = item['strAlbum']
             albumdata['year'] = item.get('intYearReleased', '')
             albumdata['thumb'] = item.get('strAlbumThumb', '')
-            albumdata['url'] = item['strMusicBrainzID']
+            albumdata['mbid'] = item['strMusicBrainzID']
             albumdata['relevance'] = '1'
             albums.append(albumdata)
         return albums

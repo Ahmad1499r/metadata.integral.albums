@@ -15,7 +15,7 @@ def allmusic_albumfind(data):
         releasedata = item.find('div', {'class':'info'})
         albumdata = releasedata.find('div', {'class':'title'})
         albumname = albumdata.find('a').get_text().strip()
-        albumurl = ALLMUSICDETAILS % albumdata.find('a').get('href')
+        albumurl = albumdata.find('a').get('href')
         artistdata = releasedata.find('div', {'class':'artist'})
         if not artistdata: # classical album
             continue
@@ -30,7 +30,7 @@ def allmusic_albumfind(data):
         albumdata['album'] = albumname
         albumdata['year'] = yearvalue
         albumdata['thumb'] = coverurl
-        albumdata['url'] = albumurl
+        albumdata['mbid'] = albumurl # url
         albumdata['relevance'] = '1'
         albums.append(albumdata)
     return albums

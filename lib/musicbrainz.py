@@ -10,7 +10,7 @@ def musicbrainz_albumfind(data):
             albumdata['album'] = item['title']
             albumdata['year'] = ''
             albumdata['thumb'] = ''
-            albumdata['url'] = item['id']
+            albumdata['mbid'] = item['id']
             albumdata['relevance'] = str(100.00 / int(item['score']))
             albums.append(albumdata)
         return albums
@@ -39,10 +39,5 @@ def musicbrainz_albumdetails(data):
             artistdata['mbartistid'] = artist['artist']['id']
             artists.append(artistdata)
         albumdata['artist'] = artists
-    if data['relations']:
-        for relation in data['relations']:
-            if ('type' in relation) and (relation['type'] == 'allmusic'):
-                albumdata['amlink'] = relation['url']['resource']
-                break
     albumdata['releasetype'] = 'album'
     return albumdata

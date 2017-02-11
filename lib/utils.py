@@ -7,7 +7,7 @@ AUDIODBDETAILS = 'album-mb.php?i=%s'
 
 MUSICBRAINZURL = 'http://musicbrainz.org/ws/2/release-group/%s'
 MUSICBRAINZSEARCH = '?query=artist:"%s"%%20AND%%20releasegroup:"%s"%%20AND%%20primarytype:album&fmt=json'
-MUSICBRAINZDETAILS = '%s?inc=url-rels%%2Bratings%%2Bartist-credits&fmt=json'
+MUSICBRAINZDETAILS = '%s?inc=ratings%%2Bartist-credits&fmt=json'
 
 ALLMUSICURL = 'http://www.allmusic.com/%s'
 ALLMUSICSEARCH = 'search/albums/%s%%2B%s'

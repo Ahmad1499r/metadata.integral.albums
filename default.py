@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-
 import sys
 import urllib
 import urlparse
@@ -15,9 +14,9 @@ class Main:
     def _parse_argv(self):
         params = dict(urlparse.parse_qsl(sys.argv[2].lstrip('?')))
         action = params['action']
-        artist = urllib.unquote_plus(params.get('artist', ''))
-        album = urllib.unquote_plus(params.get('title', ''))
-        url = urllib.unquote_plus(params.get('url', ''))
+        artist = params.get('artist', '')
+        album = params.get('title', '')
+        url = params.get('url', '')
         return action, artist, album, url
 
 
