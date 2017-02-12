@@ -32,11 +32,8 @@ def get_data(url):
 class Scraper():
     def __init__(self, action, artist, album, url):
         self.start = 0
-        if action == 'find': # only useful for manual search, search both/all providers?
-            result = self.find_album(artist, album, 'theaudiodb')
-            if not result:
-                result = self.find_album(artist, album, 'musicbrainz')
-            #TODO search allmusic.. is it likely an album does not exist on musicbrainz, but does on allmusic?
+        if action == 'find':
+            result = self.find_album(artist, album, 'musicbrainz')
             if result:
                 self.return_search(result)
         elif action == 'getdetails':
@@ -156,6 +153,7 @@ class Scraper():
             listitem.setProperty('album.artist', item['artist'])
             listitem.setProperty('album.year', item['year'])
             listitem.setProperty('relevance', item['relevance'])
+            listitem.setProperty('IsPlayable', 'true') # suppress 'Attempt to use invalid handle' warnings
             url = {'artist':item['artist'], 'album':item['album'], 'mbid':item['mbid']}
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=json.dumps(url), listitem=listitem, isFolder=True)
 
@@ -192,7 +190,7 @@ class Scraper():
             listitem.setProperty('album.release_type', item['releasetype'])
         if 'year' in item:
             listitem.setProperty('album.year', item['year'])
-        if 'rating' in item: # check what format it needs to be
+        if 'rating' in item:
             listitem.setProperty('album.rating', item['rating'])
         if 'votes' in item:
             listitem.setProperty('album.votes', item['votes'])
