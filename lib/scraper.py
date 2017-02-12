@@ -42,25 +42,22 @@ class Scraper():
             album = url['album'].encode('utf-8')
             mbid = url['mbid']
             details = {}
-            mbresult = Thread(target = self.get_details, args = (mbid, 'musicbrainz', details))
-            adresult = Thread(target = self.get_details, args = (mbid, 'theaudiodb', details))
-            ftresult = Thread(target = self.get_details, args = (mbid, 'fanarttv', details))
-            amresult = Thread(target = self.get_details, args = ([artist, album], 'allmusic', details))
-            mbresult.start()
-            adresult.start()
-            ftresult.start()
-            amresult.start()
-            mbresult.join()
-            adresult.join()
-            ftresult.join()
-            amresult.join()
+            threads = []
+            for item in [[mbid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
+                thread = Thread(target = self.get_details, args = (item[0], item[1], details))
+                threads.append(thread)
+                thread.start()
+            for thread in threads:
+                thread.join()
             result = self.compile_results(details)
             if result:
                 self.return_details(result)
-        if self.start: # musicbrainz ratelimit
+        # musicbrainz ratelimit
+        if self.start:
             self.end = time.time()
             if self.end - self.start < 1:
-                diff = int((1 - (self.end - self.start)) * 1000) + 100 # wait max 1.1 sec.
+                # wait max 1.1 second
+                diff = int((1 - (self.end - self.start)) * 1000) + 100
                 xbmc.sleep(diff)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -121,7 +118,6 @@ class Scraper():
         details[site] = albumresults
 
     def compile_results(self, details):
-        #TODO implement user preferences
         result = {}
         thumbs = []
         # merge results
@@ -143,8 +139,34 @@ class Scraper():
                 result[k] = v
                 if k == 'thumb':
                     thumbs += v
-        if result: # provide artwork from all scrapers
+        # use musicbrainz artist list as they provide mbid's, these can be passed to the artist scraper
+        result['artist'] = details['musicbrainz']['artist']
+        # provide artwork from all scrapers for getthumb option
+        if result:
             result['thumb'] = thumbs
+        data = self.user_prefs(details, result)
+        return data
+
+    def user_prefs(self, details, result):
+        # user preferences
+        lang = 'description' + xbmcaddon.Addon().getSetting('lang')
+        if 'theaudiodb' in details:
+            if lang in details['theaudiodb']:
+                result['description'] = details['theaudiodb'][lang]
+            elif 'descriptionEN' in details['theaudiodb']:
+                result['description'] = details['theaudiodb']['descriptionEN']
+        genre = xbmcaddon.Addon().getSetting('genre')
+        if (genre in details) and ('genre' in details[genre]):
+            result['genre'] = details[genre]['genre']
+        style = xbmcaddon.Addon().getSetting('style')
+        if (style in details) and ('styles' in details[style]):
+            result['styles'] = details[style]['styles']
+        mood = xbmcaddon.Addon().getSetting('mood')
+        if (mood in details) and ('moods' in details[mood]):
+            result['moods'] = details[mood]['moods']
+        theme = xbmcaddon.Addon().getSetting('theme')
+        if (theme in details) and ('themes' in details[theme]):
+            result['themes'] = details[theme]['themes']
         return result
 
     def return_search(self, data):
@@ -153,7 +175,6 @@ class Scraper():
             listitem.setProperty('album.artist', item['artist'])
             listitem.setProperty('album.year', item['year'])
             listitem.setProperty('relevance', item['relevance'])
-            listitem.setProperty('IsPlayable', 'true') # suppress 'Attempt to use invalid handle' warnings
             url = {'artist':item['artist'], 'album':item['album'], 'mbid':item['mbid']}
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=json.dumps(url), listitem=listitem, isFolder=True)
 
@@ -174,8 +195,6 @@ class Scraper():
             listitem.setProperty('album.moods', item['moods'])
         if 'themes' in item:
             listitem.setProperty('album.themes', item['themes'])
-        if 'compilation' in item: # do we need to set this? if so, is this a 'various artist album' or a 'greatest hits album by a single artist' ?
-            listitem.setProperty('album.compilation', item['compilation'])
         if 'description' in item:
             listitem.setProperty('album.review', item['description'])
         if 'releasedate' in item: # do we use this, does it need to be in a specific format ?
@@ -199,6 +218,5 @@ class Scraper():
         if 'thumb' in item:
             listitem.setProperty('album.thumbs', str(len(item['thumb'])))
             for count, thumb in enumerate(item['thumb']):
-                listitem.setProperty('album.thumb%i.url' % (count + 1), thumb['thumb'])
-                listitem.setProperty('album.thumb%i.aspect' % (count + 1), thumb['thumbaspect'])
+                listitem.setProperty('album.thumb%i.url' % (count + 1), thumb)
         xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=True, listitem=listitem)

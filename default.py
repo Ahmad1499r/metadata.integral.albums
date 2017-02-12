@@ -9,6 +9,9 @@ from lib.scraper import Scraper
 class Main:
     def __init__(self):
         action, artist, album, url = self._parse_argv()
+        # no support for providing an url through a .nfo file
+        if url.startswith('http://'):
+            return
         Scraper(action, artist, album, url)
 
     def _parse_argv(self):

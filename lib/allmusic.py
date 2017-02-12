@@ -86,13 +86,10 @@ def allmusic_albumdetails(data):
     albumdata['artist'] = artists
     thumbdata = soup.find('div', {'class':'album-contain'})
     thumbimg = thumbdata.find('img', {'class':'media-gallery-image'})
-    thumb = []
     if thumbimg:
-        thumbinfo = {}
-        thumbinfo['thumb'] = thumbimg.get('src')
-        thumbinfo['thumbaspect'] = ''
-        thumb.append(thumbinfo)
-    albumdata['thumb'] = thumb
+        thumb = []
+        thumb.append(thumbimg.get('src'))
+        albumdata['thumb'] = thumb
     yeardata = soup.find('td', {'class':'year'})
     if yeardata:
         albumdata['year'] = yeardata.get_text().strip()

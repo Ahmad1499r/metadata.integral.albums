@@ -48,9 +48,37 @@ def theaudiodb_albumdetails(data):
             albumdata['mbalbumid'] = item['strMusicBrainzID']
         # api inconsistent
         if ('strDescription' in item) and item['strDescription']:
-            albumdata['description'] = item['strDescription']
+            albumdata['descriptionEN'] = item['strDescription']
         elif ('strDescriptionEN' in item) and item['strDescriptionEN']:
-            albumdata['description'] = item['strDescriptionEN']
+            albumdata['descriptionEN'] = item['strDescriptionEN']
+        if item['strDescriptionDE']:
+            albumdata['descriptionDE'] = item['strDescriptionDE']
+        if item['strDescriptionFR']:
+            albumdata['descriptionFR'] = item['strDescriptionFR']
+        if item['strDescriptionCN']:
+            albumdata['descriptionCN'] = item['strDescriptionCN']
+        if item['strDescriptionIT']:
+            albumdata['descriptionIT'] = item['strDescriptionIT']
+        if item['strDescriptionJP']:
+            albumdata['descriptionJP'] = item['strDescriptionJP']
+        if item['strDescriptionRU']:
+            albumdata['descriptionRU'] = item['strDescriptionRU']
+        if item['strDescriptionES']:
+            albumdata['descriptionES'] = item['strDescriptionES']
+        if item['strDescriptionPT']:
+            albumdata['descriptionPT'] = item['strDescriptionPT']
+        if item['strDescriptionSE']:
+            albumdata['descriptionSE'] = item['strDescriptionSE']
+        if item['strDescriptionNL']:
+            albumdata['descriptionNL'] = item['strDescriptionNL']
+        if item['strDescriptionHU']:
+            albumdata['descriptionHU'] = item['strDescriptionHU']
+        if item['strDescriptionNO']:
+            albumdata['descriptionNO'] = item['strDescriptionNO']
+        if item['strDescriptionIL']:
+            albumdata['descriptionIL'] = item['strDescriptionIL']
+        if item['strDescriptionPL']:
+            albumdata['descriptionPL'] = item['strDescriptionPL']
         if item['strArtist']:
             artists = []
             artistdata = {}
@@ -61,10 +89,7 @@ def theaudiodb_albumdetails(data):
             albumdata['artist'] = artists
         if item['strAlbumThumb']:
             thumb = []
-            thumbdata = {}
-            thumbdata['thumb'] = item['strAlbumThumb']
-            thumbdata['thumbaspect'] = ''
-            thumb.append(thumbdata)
+            thumb.append(item['strAlbumThumb'])
             albumdata['thumb'] = thumb
         albumdata['releasetype'] = 'album'
         return albumdata

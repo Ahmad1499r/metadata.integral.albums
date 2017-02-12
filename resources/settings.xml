@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<settings>
+	<category>
+		<setting label="30001" type="labelenum" id="lang" default="EN" values="CN|DE|EN|ES|FR|HU|IL|IT|JP|NL|NO|PL|PT|RU|SE"/>
+		<setting label="30003" type="labelenum" id="genre" default="allmusic" values="allmusic|theaudiodb"/>
+		<setting label="30004" type="labelenum" id="style" default="allmusic" values="allmusic|theaudiodb"/>
+		<setting label="30005" type="labelenum" id="mood" default="allmusic" values="allmusic|theaudiodb"/>
+		<setting label="30006" type="labelenum" id="theme" default="allmusic" values="allmusic|theaudiodb"/>
+	</category>
+</settings>
