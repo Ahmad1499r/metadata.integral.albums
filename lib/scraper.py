@@ -37,18 +37,29 @@ class Scraper():
             if result:
                 self.return_search(result)
         elif action == 'getdetails':
-            url = json.loads(url)
-            artist = url['artist'].encode('utf-8')
-            album = url['album'].encode('utf-8')
-            mbid = url['mbid']
             details = {}
-            threads = []
-            for item in [[mbid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
-                thread = Thread(target = self.get_details, args = (item[0], item[1], details))
-                threads.append(thread)
+            if url.startswith('http://'):
+                if url.startswith('http://www.theaudiodb.com/'):
+                    site = 'theaudiodb-nfo'
+                elif url.startswith('http://www.allmusic.com/'):
+                    site = 'allmusic-nfo'
+                else:
+                    return
+                thread = Thread(target = self.get_details, args = (url, site, details))
                 thread.start()
-            for thread in threads:
                 thread.join()
+            else:
+                url = json.loads(url)
+                artist = url['artist'].encode('utf-8')
+                album = url['album'].encode('utf-8')
+                mbid = url['mbid']
+                threads = []
+                for item in [[mbid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
+                    thread = Thread(target = self.get_details, args = (item[0], item[1], details))
+                    threads.append(thread)
+                    thread.start()
+                for thread in threads:
+                    thread.join()
             result = self.compile_results(details)
             if result:
                 self.return_details(result)
@@ -105,6 +116,12 @@ class Scraper():
                 albumscraper = allmusic_albumdetails
             else:
                 return
+        elif site == 'theaudiodb-nfo':
+            site = 'theaudiodb'
+            url = mbid
+        elif site == 'allmusic-nfo':
+            site = 'allmusic'
+            url = mbid
         result = get_data(url)
         if site == 'musicbrainz':
             self.start = time.time()

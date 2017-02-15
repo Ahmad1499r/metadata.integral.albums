@@ -1,4 +1,6 @@
 # -*- coding: UTF-8 -*-
+import time
+import datetime
 from bs4 import BeautifulSoup
 from utils import *
 
@@ -40,7 +42,14 @@ def allmusic_albumdetails(data):
     albumdata = {}
     releasedata = soup.find("div", {"class":"release-date"})
     if releasedata:
-        albumdata['releasedate'] = releasedata.find('span').get_text()
+        dateformat = releasedata.find('span').get_text()
+        if len(dateformat) > 4:
+            try:
+                albumdata['releasedate'] = datetime.datetime(*(time.strptime(dateformat, '%B %d, %Y')[0:6])).strftime('%Y-%m-%d')
+            except:
+                albumdata['releasedate'] = datetime.datetime(*(time.strptime(dateformat, '%B, %Y')[0:6])).strftime('%Y-%m')
+        else:
+            albumdata['releasedate'] = releasedata.find('span').get_text()
     genredata = soup.find("div", {"class":"genre"})
     if genredata:
         genrelist = genredata.find_all('a')

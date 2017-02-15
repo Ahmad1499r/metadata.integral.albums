@@ -26,7 +26,9 @@ def musicbrainz_albumdetails(data):
         albumdata['rating'] = str(int(data['rating']['value'] + 0.5))
         albumdata['votes'] = str(data['rating']['votes-count'])
     if data['secondary-types']:
-        albumdata['type'] = data['secondary-types'][0]
+        albumdata['type'] = '%s / %s' % (data['primary-type'], data['secondary-types'][0])
+    if data['secondary-types'] and (data['secondary-types'][0] == 'Compilation'):
+        albumdata['compilation'] = 'true'
     if data['artist-credit']:
         artists = []
         for artist in data['artist-credit']:
