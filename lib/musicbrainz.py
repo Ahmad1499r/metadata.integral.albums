@@ -23,7 +23,7 @@ def musicbrainz_albumdetails(data):
         albumdata['year'] = data['first-release-date'][:4]
         albumdata['releasedate'] = data['first-release-date']
     if data['rating'] and data['rating']['value']:
-        albumdata['rating'] = str(int(data['rating']['value'] + 0.5))
+        albumdata['rating'] = str(int(float(data['rating']['value'] * 2) + 0.5))
         albumdata['votes'] = str(data['rating']['votes-count'])
     if data['secondary-types']:
         albumdata['type'] = '%s / %s' % (data['primary-type'], data['secondary-types'][0])
