@@ -56,14 +56,14 @@ def allmusic_albumdetails(data):
         genres = []
         for genre in genrelist:
             genres.append(genre.get_text())        
-        albumdata['genre'] = ', '.join(genres)
+        albumdata['genre'] = ' / '.join(genres)
     styledata = soup.find("div", {"class":"styles"})
     if styledata:
         stylelist = styledata.find_all('a')
         styles = []
         for style in stylelist:
             styles.append(style.get_text())        
-        albumdata['styles'] = ', '.join(styles)
+        albumdata['styles'] = ' / '.join(styles)
     mooddata =  soup.find('section', {'class':'moods'})
     if mooddata:
         moodlist = mooddata.find_all('a')
@@ -71,14 +71,14 @@ def allmusic_albumdetails(data):
         for mood in moodlist:
             moods.append(mood.get_text())  
 
-        albumdata['moods'] = ', '.join(moods)
+        albumdata['moods'] = ' / '.join(moods)
     themedata = soup.find('section', {'class':'themes'})
     if themedata:
         themelist = themedata.find_all('a')
         themes = []
         for theme in themelist:
             themes.append(theme.get_text())        
-        albumdata['themes'] = ', '.join(themes)
+        albumdata['themes'] = ' / '.join(themes)
     albumdata['rating'] = soup.find('div', {'itemprop':'ratingValue'}).get_text().strip()
     albumdata['album'] = soup.find('h1', {'class':'album-title'}).get_text().strip()
     artistdata = soup.find('h2', {'class':'album-artist'})
