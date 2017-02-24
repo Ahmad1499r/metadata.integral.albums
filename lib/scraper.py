@@ -214,7 +214,7 @@ class Scraper():
             listitem.setProperty('album.themes', item['themes'])
         if 'description' in item:
             listitem.setProperty('album.review', item['description'])
-        if 'releasedate' in item: # do we use this, does it need to be in a specific format ?
+        if 'releasedate' in item:
             listitem.setProperty('album.release_date', item['releasedate'])
         if 'artist_description' in item:
             listitem.setProperty('album.artist_description', item['artist_description'])
@@ -222,7 +222,7 @@ class Scraper():
             listitem.setProperty('album.label', item['label'])
         if 'type' in item:
             listitem.setProperty('album.type', item['type'])
-        if 'releasetype' in item: # this is always 'album' ?
+        if 'releasetype' in item:
             listitem.setProperty('album.release_type', item['releasetype'])
         if 'year' in item:
             listitem.setProperty('album.year', item['year'])
