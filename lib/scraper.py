@@ -15,6 +15,7 @@ from musicbrainz import musicbrainz_albumfind
 from musicbrainz import musicbrainz_albumdetails
 from allmusic import allmusic_albumfind
 from allmusic import allmusic_albumdetails
+from nfo import nfo_albumdetails
 from fanarttv import fanarttv_albumart
 from utils import *
 
@@ -60,6 +61,21 @@ class Scraper():
                     thread.start()
                 for thread in threads:
                     thread.join()
+#        elif action == 'parsenfo':
+#            result = self.parse.nfo(url)
+#            if result:
+#                self.return_details(result)
+#TODO test if url in nfo file
+#            if url.startswith('http://'):
+#                if url.startswith('http://www.theaudiodb.com/'):
+#                    site = 'theaudiodb-nfo'
+#                elif url.startswith('http://www.allmusic.com/'):
+#                    site = 'allmusic-nfo'
+#                else:
+#                    return
+#                thread = Thread(target = self.get_details, args = (url, site, details))
+#                thread.start()
+#                thread.join()
             result = self.compile_results(details)
             if result:
                 self.return_details(result)
@@ -133,6 +149,15 @@ class Scraper():
         if not albumresults:
             return
         details[site] = albumresults
+
+#    def parse_nfo(self, path):
+#        try:
+#            datafile = xbmcvfs.File(PATH)
+#            data = datafile.read()
+#            datafile.close()
+#        except:
+#            return
+#        return data
 
     def compile_results(self, details):
         result = {}
@@ -222,6 +247,8 @@ class Scraper():
             listitem.setProperty('album.label', item['label'])
         if 'type' in item:
             listitem.setProperty('album.type', item['type'])
+        if 'compilation' in item:
+            listitem.setProperty('album.compilation', item['compilation'])
         if 'releasetype' in item:
             listitem.setProperty('album.release_type', item['releasetype'])
         if 'year' in item:

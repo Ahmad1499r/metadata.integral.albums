@@ -80,6 +80,7 @@ def theaudiodb_albumdetails(data):
         if item['strDescriptionPL']:
             albumdata['descriptionPL'] = item['strDescriptionPL']
         if item['strArtist']:
+            albumdata['artist_description'] = item['strArtist']
             artists = []
             artistdata = {}
             artistdata['artist'] = item['strArtist']

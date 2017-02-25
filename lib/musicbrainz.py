@@ -37,5 +37,6 @@ def musicbrainz_albumdetails(data):
             artistdata['mbartistid'] = artist['artist']['id']
             artists.append(artistdata)
         albumdata['artist'] = artists
+        albumdata['artist_description'] = data['artist-credit'][0]['name']
     albumdata['releasetype'] = 'album'
     return albumdata

@@ -93,6 +93,8 @@ def allmusic_albumdetails(data):
         artistinfo['mbartistid'] = ''
         artists.append(artistinfo)
     albumdata['artist'] = artists
+    if artistlist:
+        albumdata['artist_description'] = artistlist[0]
     thumbdata = soup.find('div', {'class':'album-contain'})
     thumbimg = thumbdata.find('img', {'class':'media-gallery-image'})
     if thumbimg:
