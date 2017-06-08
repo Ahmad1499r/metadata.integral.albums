@@ -8,8 +8,8 @@ from lib.scraper import Scraper
 
 class Main:
     def __init__(self):
-        action, artist, album, url = self._parse_argv()
-        Scraper(action, artist, album, url)
+        action, artist, album, url, key = self._parse_argv()
+        Scraper(action, artist, album, url, key)
 
     def _parse_argv(self):
         params = dict(urlparse.parse_qsl(sys.argv[2].lstrip('?')))
@@ -17,7 +17,8 @@ class Main:
         artist = params.get('artist', '')
         album = params.get('title', '')
         url = params.get('url', '')
-        return action, artist, album, url
+        key = params.get('key', '')
+        return action, artist, album, url, key
 
 
 if (__name__ == '__main__'):

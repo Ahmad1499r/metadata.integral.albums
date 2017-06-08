@@ -18,6 +18,7 @@ from allmusic import allmusic_albumdetails
 from nfo import nfo_albumdetails
 from fanarttv import fanarttv_albumart
 from utils import *
+import web_pdb
 
 def get_data(url):
     try:
@@ -31,12 +32,17 @@ def get_data(url):
 
 
 class Scraper():
-    def __init__(self, action, artist, album, url):
+    def __init__(self, action, artist, album, url, key):
         self.start = 0
         if action == 'find':
             result = self.find_album(artist, album, 'musicbrainz')
             if result:
                 self.return_search(result)
+        elif action == 'resolveid':
+            url = {'artist':"", 'album':"", 'releasegroupid':"", 'releaseid':key}
+            mbpath = json.dumps(url) # MUSICBRAINZURL % (MUSICBRAINZDETAILS % key)
+            listitem = xbmcgui.ListItem(path=mbpath, offscreen = True)
+            xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=True, listitem=listitem)
         elif action == 'getdetails':
             details = {}
             if url.startswith('http://'):
@@ -53,12 +59,26 @@ class Scraper():
                 url = json.loads(url)
                 artist = url['artist'].encode('utf-8')
                 album = url['album'].encode('utf-8')
-                mbid = url['mbid']
+                mbreleaseid = url['releaseid']
+                mbid = url['releasegroupid']
                 threads = []
-                for item in [[mbid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
-                    thread = Thread(target = self.get_details, args = (item[0], item[1], details))
-                    threads.append(thread)
-                    thread.start()
+                if not mbid:
+                    # Only have releaseid so fetch album, artist and releasegroupid Musicbrainz for other scrapers
+                    result = self.get_details(mbreleaseid, 'musicbrainz', details)
+                    if result:
+                        artist = details['artist_description'].encode('utf-8')
+                        album = details['album'].encode('utf-8')
+                        mbid = details['releasegroupid']
+                        for item in [[mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
+                            thread = Thread(target = self.get_details, args = (item[0], item[1], details))
+                            threads.append(thread)
+                            thread.start()
+                else:
+                    #for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
+                    for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv']]:					
+                        thread = Thread(target = self.get_details, args = (item[0], item[1], details))
+                        threads.append(thread)
+                        thread.start()
                 for thread in threads:
                     thread.join()
 #        elif action == 'parsenfo':
@@ -95,7 +115,7 @@ class Scraper():
             scraper = theaudiodb_albumfind
         # musicbrainz
         elif site == 'musicbrainz':
-            url = MUSICBRAINZURL % (MUSICBRAINZSEARCH % (urllib.quote_plus(artist), urllib.quote_plus(album)))
+            url = MUSICBRAINZURL % (MUSICBRAINZSEARCH % ( urllib.quote_plus(album), urllib.quote_plus(artist), urllib.quote_plus(artist)))
             scraper = musicbrainz_albumfind
         # allmusic
         elif site == 'allmusic':
@@ -214,16 +234,19 @@ class Scraper():
     def return_search(self, data):
         for count, item in enumerate(data):
             listitem = xbmcgui.ListItem(item['album'], thumbnailImage=item['thumb'], offscreen=True)
-            listitem.setProperty('album.artist', item['artist'])
+            listitem.setProperty('album.artist', item['artist_description'])
             listitem.setProperty('album.year', item['year'])
             listitem.setProperty('relevance', item['relevance'])
-            url = {'artist':item['artist'], 'album':item['album'], 'mbid':item['mbid']}
+            url = {'artist':item['artist_description'], 'album':item['album'], 'releasegroupid':item['releasegroupid'], 'releaseid':item['releaseid']}
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=json.dumps(url), listitem=listitem, isFolder=True)
 
     def return_details(self, item):
         listitem = xbmcgui.ListItem(item['album'], offscreen=True)
-        if 'mbalbumid' in item:
-            listitem.setProperty('album.musicbrainzid', item['mbalbumid'])
+        if 'releasegroupid' in item:
+            listitem.setProperty('album.releasegroupid', item['releasegroupid'])
+        if 'releaseid' in item:
+            listitem.setProperty('album.releaseid', item['releaseid'])
+            listitem.setProperty('album.musicbrainzid', item['releaseid'])			
         if 'artist' in item:
             listitem.setProperty('album.artists', str(len(item['artist'])))
             for count, artist in enumerate(item['artist']):

@@ -5,9 +5,9 @@ AUDIODBURL = 'http://www.theaudiodb.com/api/v1/json/%s/%s'
 AUDIODBSEARCH = 'searchalbum.php?s=%s&a=%s'
 AUDIODBDETAILS = 'album-mb.php?i=%s'
 
-MUSICBRAINZURL = 'http://musicbrainz.org/ws/2/release-group/%s'
-MUSICBRAINZSEARCH = '?query=artist:"%s"%%20AND%%20releasegroup:"%s"%%20AND%%20primarytype:album&fmt=json'
-MUSICBRAINZDETAILS = '%s?inc=ratings%%2Bartist-credits&fmt=json'
+MUSICBRAINZURL = 'http://musicbrainz.org/ws/2/release/%s'
+MUSICBRAINZSEARCH = '?query=release:"%s"%%20AND%%20(artistname:"%s"%%20OR%%20artist:"%s")&fmt=json'
+MUSICBRAINZDETAILS = '%s?inc=recordings+release-groups+artists+labels+ratings&fmt=json'
 
 ALLMUSICURL = 'http://www.allmusic.com/%s'
 ALLMUSICSEARCH = 'search/albums/%s%%2B%s'

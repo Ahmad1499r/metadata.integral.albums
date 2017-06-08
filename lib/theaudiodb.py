@@ -45,7 +45,7 @@ def theaudiodb_albumdetails(data):
         if item['strTheme']:
             albumdata['themes'] = item['strTheme']
         if item['strMusicBrainzID']:
-            albumdata['mbalbumid'] = item['strMusicBrainzID']
+            albumdata['releasegroupid'] = item['strMusicBrainzID']
         # api inconsistent
         if ('strDescription' in item) and item['strDescription']:
             albumdata['descriptionEN'] = item['strDescription']
