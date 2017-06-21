@@ -18,7 +18,11 @@ from allmusic import allmusic_albumdetails
 from nfo import nfo_albumdetails
 from fanarttv import fanarttv_albumart
 from utils import *
+#remove these
 import web_pdb
+import logging
+
+logging.basicConfig(filename='integralalbumscraper.txt', level=logging.DEBUG)
 
 def get_data(url):
     try:
@@ -69,13 +73,16 @@ class Scraper():
                         artist = details['artist_description'].encode('utf-8')
                         album = details['album'].encode('utf-8')
                         mbid = details['releasegroupid']
+                        # skipping allmusic                        
                         for item in [[mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
+                        #for item in [[mbid, 'theaudiodb'], [mbid, 'fanarttv']]:                        
                             thread = Thread(target = self.get_details, args = (item[0], item[1], details))
                             threads.append(thread)
                             thread.start()
                 else:
-                    #for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
-                    for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv']]:					
+                    # skipping allmusic
+                    for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
+                    #for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv']]:                    
                         thread = Thread(target = self.get_details, args = (item[0], item[1], details))
                         threads.append(thread)
                         thread.start()
@@ -206,13 +213,23 @@ class Scraper():
         # provide artwork from all scrapers for getthumb option
         if result:
             result['thumb'] = thumbs
+        #DEBUG
+        json_string = json.dumps(details)
+        logging.debug("Details")
+        logging.debug("%s" % json_string)          
+        json_string = json.dumps(result)
+        logging.debug("JSON results")
+        logging.debug("%s" % json_string)
+            
         data = self.user_prefs(details, result)
         return data
 
     def user_prefs(self, details, result):
         # user preferences
+        logging.debug("User_prefs processed")
+        review = xbmcaddon.Addon().getSetting('review')
         lang = 'description' + xbmcaddon.Addon().getSetting('lang')
-        if 'theaudiodb' in details:
+        if 'theaudiodb' in details and review == 'TheAudioDb':
             if lang in details['theaudiodb']:
                 result['description'] = details['theaudiodb'][lang]
             elif 'descriptionEN' in details['theaudiodb']:
@@ -229,6 +246,12 @@ class Scraper():
         theme = xbmcaddon.Addon().getSetting('theme')
         if (theme in details) and ('themes' in details[theme]):
             result['themes'] = details[theme]['themes']
+        rating = xbmcaddon.Addon().getSetting('rating')
+        if (rating in details) and ('rating' in details[rating]):
+            result['rating'] = details[rating]['rating']
+            result['votes'] = details[rating]['votes']
+        logging.debug("Rating is %s" % rating)
+        logging.debug("Rating value %s" % result['rating'])
         return result
 
     def return_search(self, data):
@@ -246,12 +269,13 @@ class Scraper():
             listitem.setProperty('album.releasegroupid', item['releasegroupid'])
         if 'releaseid' in item:
             listitem.setProperty('album.releaseid', item['releaseid'])
-            listitem.setProperty('album.musicbrainzid', item['releaseid'])			
+            listitem.setProperty('album.musicbrainzid', item['releaseid'])            
         if 'artist' in item:
             listitem.setProperty('album.artists', str(len(item['artist'])))
             for count, artist in enumerate(item['artist']):
                 listitem.setProperty('album.artist%i.name' % (count + 1), artist['artist'])
                 listitem.setProperty('album.artist%i.musicbrainzid' % (count + 1), artist['mbartistid'])
+                listitem.setProperty('album.artist%i.sortname' % (count + 1), artist['artistsort'])                
         if 'genre' in item:
             listitem.setProperty('album.genre', item['genre'])
         if 'styles' in item:
@@ -272,8 +296,7 @@ class Scraper():
             listitem.setProperty('album.type', item['type'])
         if 'compilation' in item:
             listitem.setProperty('album.compilation', item['compilation'])
-        if 'releasetype' in item:
-            listitem.setProperty('album.release_type', item['releasetype'])
+        # releasetype is flag internal to Kodi, never scraped
         if 'year' in item:
             listitem.setProperty('album.year', item['year'])
         if 'rating' in item:

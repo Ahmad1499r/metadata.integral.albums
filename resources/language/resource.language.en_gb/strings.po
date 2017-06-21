@@ -17,21 +17,83 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgctxt "#30001"
+msgid "Get album review from"
+msgstr ""
+
+msgctxt "#30002"
 msgid "Prefered language for album review"
 msgstr ""
 
 msgctxt "#30003"
-msgid "Prefer genres from"
+msgid "Get album genres from"
 msgstr ""
 
 msgctxt "#30004"
-msgid "Prefer styles from"
+msgid "Get album styles from"
 msgstr ""
 
 msgctxt "#30005"
-msgid "Prefer moods from"
+msgid "Get album moods from"
 msgstr ""
 
 msgctxt "#30006"
-msgid "Prefer themes from"
+msgid "Get album themes from"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Get album rating from"
+msgstr ""
+
+msgctxt "#30010"
+msgid "Fallbacks"
+msgstr ""
+
+msgctxt "#30011"
+msgid "Fallback to album review from"
+msgstr ""
+
+#empty string with id 30012
+
+msgctxt "#30013"
+msgid "Fallback to album genres from"
+msgstr ""
+
+msgctxt "#30014"
+msgid "Fallback to album styles from"
+msgstr ""
+
+msgctxt "#30015"
+msgid "Fallback to album moods from"
+msgstr ""
+
+msgctxt "#30016"
+msgid "Fallback to album themes from"
+msgstr ""
+
+msgctxt "#30017"
+msgid "Fallback to album rating from"
+msgstr ""
+
+msgctxt "#30020"
+msgid "Artwork"
+msgstr ""
+
+msgctxt "#30021"
+msgid "Get album thumbs from Fanart.tv"
+msgstr ""
+
+msgctxt "#30022"
+msgid "Get album thumbs from TheAudioDb.com"
+msgstr ""
+
+msgctxt "#30023"
+msgid "Get album thumbs from allmusic.com"
+msgstr ""
+
+msgctxt "#30030"
+msgid "Mirrors"
+msgstr ""
+
+msgctxt "#30031"
+msgid "Musicbrainz Mirror"
 msgstr ""

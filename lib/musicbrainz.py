@@ -22,8 +22,9 @@ def musicbrainz_albumfind(data):
             if item['label-info']:
                 albumdata['label'] = item['label-info'][0]['label']['name']
             albumdata['album'] = item['title']
-            # todo: get year from release event dates
-            albumdata['year'] = ''
+            # Get year from release event dates
+            if item['release-events']:
+              albumdata['year'] = item['release-events'][0]['date'][:4]
             albumdata['thumb'] = ''
             albumdata['releaseid'] = item['id'] # release queried
             if item['release-group']:
