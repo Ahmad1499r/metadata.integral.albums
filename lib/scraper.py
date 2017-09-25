@@ -26,6 +26,7 @@ logging.basicConfig(filename='integralalbumscraper.txt', level=logging.DEBUG)
 
 def get_data(url):
     try:
+        logging.debug("Request %s" % url)
         req = urllib2.Request(url, headers={'User-Agent': 'Intergral Albums Scraper/%s ( http://kodi.tv )' % xbmcaddon.Addon().getAddonInfo('version')})
         request = urllib2.urlopen(req)
         response = request.read()
@@ -73,19 +74,19 @@ class Scraper():
                         artist = details['artist_description'].encode('utf-8')
                         album = details['album'].encode('utf-8')
                         mbid = details['releasegroupid']
-                        # skipping allmusic                        
                         for item in [[mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
-                        #for item in [[mbid, 'theaudiodb'], [mbid, 'fanarttv']]:                        
+                            if self.site_enabled(item[1]):
+                                logging.debug("MBID known Fetch from site %s" % item[1])
+                                thread = Thread(target = self.get_details, args = (item[0], item[1], details))
+                                threads.append(thread)
+                                thread.start()
+                else:
+                    for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
+                        if self.site_enabled(item[1]):
+                            logging.debug("Fetch from site %s" % item[1])
                             thread = Thread(target = self.get_details, args = (item[0], item[1], details))
                             threads.append(thread)
                             thread.start()
-                else:
-                    # skipping allmusic
-                    for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv'], [[artist, album], 'allmusic']]:
-                    #for item in [[mbreleaseid, 'musicbrainz'], [mbid, 'theaudiodb'], [mbid, 'fanarttv']]:                    
-                        thread = Thread(target = self.get_details, args = (item[0], item[1], details))
-                        threads.append(thread)
-                        thread.start()
                 for thread in threads:
                     thread.join()
 #        elif action == 'parsenfo':
@@ -157,6 +158,7 @@ class Scraper():
             if found:
                 url = ALLMUSICDETAILS % found[0]['mbid'] # = url
                 albumscraper = allmusic_albumdetails
+                logging.debug("Allmusic found %s" % url)
             else:
                 return
         elif site == 'theaudiodb-nfo':
@@ -189,28 +191,22 @@ class Scraper():
     def compile_results(self, details):
         result = {}
         thumbs = []
-        # merge results
+        # Musicbrainz results take preference
         if 'musicbrainz' in details:
             for k, v in details['musicbrainz'].items():
                 result[k] = v
-        if 'theaudiodb' in details:
-            for k, v in details['theaudiodb'].items():
-                result[k] = v
-                if k == 'thumb':
-                    thumbs += v
-        if 'fanarttv' in details:
-            for k, v in details['fanarttv'].items():
-                result[k] = v
-                if k == 'thumb':
-                    thumbs += v
-        if 'allmusic' in details:
-            for k, v in details['allmusic'].items():
-                result[k] = v
-                if k == 'thumb':
-                    thumbs += v
-        # use musicbrainz artist list as they provide mbid's, these can be passed to the artist scraper
-        result['artist'] = details['musicbrainz']['artist']
-        # provide artwork from all scrapers for getthumb option
+        # Review from TADB or none
+        reviewsource = xbmcaddon.Addon().getSetting('review').lower()
+        if (reviewsource in details) and ('review' in details[reviewsource]):
+            result['review'] = details[reviewsource]['review']
+        # Get required values from primary then fallback source
+        for keyname in ['genre', 'style', 'mood', 'theme', 'rating']:
+            self.value_prime_fallback(keyname, details, result)
+        # Artwork from chosen sources merged
+        for site in ['theaudiodb', 'fanarttv', 'allmusic']:
+            isthumbsource = xbmcaddon.Addon().getSettingBool(site+'thumbs')
+            if isthumbsource and (site in details) and ('thumb' in details[site]):
+                thumbs += details[site]['thumb']
         if result:
             result['thumb'] = thumbs
         #DEBUG
@@ -220,40 +216,42 @@ class Scraper():
         json_string = json.dumps(result)
         logging.debug("JSON results")
         logging.debug("%s" % json_string)
-            
-        data = self.user_prefs(details, result)
-        return data
 
-    def user_prefs(self, details, result):
-        # user preferences
-        logging.debug("User_prefs processed")
-        review = xbmcaddon.Addon().getSetting('review')
-        lang = 'description' + xbmcaddon.Addon().getSetting('lang')
-        if 'theaudiodb' in details and review == 'TheAudioDb':
-            if lang in details['theaudiodb']:
-                result['description'] = details['theaudiodb'][lang]
-            elif 'descriptionEN' in details['theaudiodb']:
-                result['description'] = details['theaudiodb']['descriptionEN']
-        genre = xbmcaddon.Addon().getSetting('genre')
-        if (genre in details) and ('genre' in details[genre]):
-            result['genre'] = details[genre]['genre']
-        style = xbmcaddon.Addon().getSetting('style')
-        if (style in details) and ('styles' in details[style]):
-            result['styles'] = details[style]['styles']
-        mood = xbmcaddon.Addon().getSetting('mood')
-        if (mood in details) and ('moods' in details[mood]):
-            result['moods'] = details[mood]['moods']
-        theme = xbmcaddon.Addon().getSetting('theme')
-        if (theme in details) and ('themes' in details[theme]):
-            result['themes'] = details[theme]['themes']
-        rating = xbmcaddon.Addon().getSetting('rating')
-        if (rating in details) and ('rating' in details[rating]):
-            result['rating'] = details[rating]['rating']
-            result['votes'] = details[rating]['votes']
-        logging.debug("Rating is %s" % rating)
-        logging.debug("Rating value %s" % result['rating'])
         return result
 
+    def value_prime_fallback(self, keyname, details, result):
+        # Get required value from primary then fallback source
+        source = xbmcaddon.Addon().getSetting(keyname).lower()
+        fallback = xbmcaddon.Addon().getSetting(keyname+'fb').lower()
+        if source == 'none':
+            if keyname in result:
+                del result[keyname]
+        elif (source in details) and (keyname in details[source]):
+            result[keyname] = details[source][keyname]
+        elif (fallback in details) and (keyname in details[fallback]):
+            result[keyname] = details[fallback][keyname]     
+          
+    def site_enabled(self, site):
+        # Check settings to see if data is to be requested from source site
+        # Musicbrainz always queried to get artist credits, tracks and label
+        # todo: only needed when "Prefer online info" is enabled for MB re-sync, could avoid making MB request
+        if (site == 'musicbrainz'):
+            return True
+        # Artwork
+        for source in ['theaudiodb', 'fanarttv', 'allmusic']:
+            if (site == source) and xbmcaddon.Addon().getSettingBool(source+'thumbs'):
+                return True
+        # General settings, only use fallback site when there is a primary source site
+        if xbmcaddon.Addon().getSetting('review').lower() == site:
+            return True
+        for keyname in ['genre', 'style', 'mood', 'theme', 'rating']:
+            source = xbmcaddon.Addon().getSetting(keyname).lower()
+            if source == site:
+                return True
+            elif source != 'none' and xbmcaddon.Addon().getSetting(keyname+'fb').lower() == site:
+                return True
+        return False
+          
     def return_search(self, data):
         for count, item in enumerate(data):
             listitem = xbmcgui.ListItem(item['album'], thumbnailImage=item['thumb'], offscreen=True)

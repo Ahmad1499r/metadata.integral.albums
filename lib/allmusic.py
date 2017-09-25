@@ -33,7 +33,7 @@ def allmusic_albumfind(data):
         albumdata['year'] = yearvalue
         albumdata['thumb'] = coverurl
         albumdata['mbid'] = albumurl # url
-        albumdata['relevance'] = '1'
+        albumdata['relevance'] = '0' # can return albums with non matching tile or artist
         albums.append(albumdata)
     return albums
 

@@ -13,7 +13,7 @@
 	
 	<category label="30020">
       <setting label="30021" type="bool" id="fanarttvthumbs" default="true"/>
-      <setting label="30022" type="bool" id="tadbthumbs" default="true"/>
+      <setting label="30022" type="bool" id="theaudiodbthumbs" default="true"/>
       <setting label="30023" type="bool" id="allmusicthumbs" default="false"/>
 	</category>
 
